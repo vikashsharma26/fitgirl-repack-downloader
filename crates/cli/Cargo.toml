@@ -1,0 +1,23 @@
+[package]
+name = "fitdl-cli"
+description = "FitDL command-line downloader"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "fitdl"
+path = "src/main.rs"
+
+[dependencies]
+fitdl-core.workspace = true
+fitdl-scraper.workspace = true
+tokio.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+indicatif = "0.17"

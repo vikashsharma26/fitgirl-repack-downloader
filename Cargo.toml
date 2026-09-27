@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+members = ["crates/engine", "crates/scraper", "crates/core", "crates/cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Vikash Sharma"]
+repository = "https://github.com/vikashsharma26/fitgirl-repack-downloader"
+
+[workspace.dependencies]
+fitdl-engine = { path = "crates/engine" }
+fitdl-scraper = { path = "crates/scraper" }
+fitdl-core = { path = "crates/core" }
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+bytes = "1"
+axum = "0.8"
+url = "2"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

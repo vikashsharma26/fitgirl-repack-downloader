@@ -1,0 +1,21 @@
+[package]
+name = "fitdl-scraper"
+description = "Extracts FitGirl Repacks download links and resolves fuckingfast.co direct links"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+fitdl-engine.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+url.workspace = true
+scraper = "0.20"
+percent-encoding = "2"
+regex = "1"
+
+[dev-dependencies]
+tokio.workspace = true
