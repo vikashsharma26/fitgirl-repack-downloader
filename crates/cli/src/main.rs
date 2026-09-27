@@ -45,6 +45,26 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Show the most popular repacks (today, this week, this month).
+    Popular {
+        #[arg(long)]
+        json: bool,
+    },
+    /// Search FitGirl Repacks.
+    Search {
+        query: String,
+        #[arg(short, long, default_value_t = 1)]
+        page: u32,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Show a game's details: size, languages, description and files.
+    Game {
+        /// Slug (e.g. avatar-frontiers-of-pandora) or page URL.
+        game: String,
+        #[arg(long)]
+        json: bool,
+    },
     /// Run headless with the local API, so the browser extension can queue downloads.
     Serve,
     /// Show where the config file is and what it contains.
@@ -97,6 +117,75 @@ async fn main() -> Result<()> {
                     println!("{:>3}. {}{tag}\n     {}", i + 1, l.filename, l.url);
                 }
                 println!("{} link(s)", page.links.len());
+            }
+            Ok(())
+        }
+        Command::Popular { json } => {
+            let m =
+                Manager::start_ephemeral(paths.clone(), Config::load_or_create(&paths.config)?)?;
+            let sections = m.popular().await?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&sections)?);
+            } else {
+                for s in &sections {
+                    println!("\n{}", s.name);
+                    for c in &s.cards {
+                        println!("  {:<42} {}", c.slug, c.title);
+                    }
+                }
+            }
+            Ok(())
+        }
+        Command::Search { query, page, json } => {
+            let m =
+                Manager::start_ephemeral(paths.clone(), Config::load_or_create(&paths.config)?)?;
+            let r = m.search(&query, page).await?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&r)?);
+            } else {
+                for g in &r.results {
+                    println!(
+                        "{:<42} {}  [{}]",
+                        g.slug,
+                        g.title,
+                        g.repack_size.as_deref().unwrap_or("?")
+                    );
+                }
+                println!("page {}/{}", r.page, r.total_pages.max(1));
+            }
+            Ok(())
+        }
+        Command::Game { game, json } => {
+            let m =
+                Manager::start_ephemeral(paths.clone(), Config::load_or_create(&paths.config)?)?;
+            let g = m.game(&game).await?;
+            if json {
+                println!("{}", serde_json::to_string_pretty(&g)?);
+            } else {
+                let s = &g.summary;
+                println!("{}\n{}", s.title, s.url);
+                for (label, value) in [
+                    ("Repack size", &s.repack_size),
+                    ("Original size", &s.original_size),
+                    ("Languages", &s.languages),
+                    ("Companies", &s.companies),
+                ] {
+                    if let Some(v) = value {
+                        println!("{label:>14}: {v}");
+                    }
+                }
+                if !s.genres.is_empty() {
+                    println!("{:>14}: {}", "Genres", s.genres.join(", "));
+                }
+                println!(
+                    "{:>14}: {} ({} optional)",
+                    "Files",
+                    g.links.len(),
+                    g.links.iter().filter(|l| l.optional).count()
+                );
+                if let Some(d) = &g.description {
+                    println!("\n{d}");
+                }
             }
             Ok(())
         }

@@ -13,6 +13,14 @@
     retry: "M3 12a9 9 0 0 1 15.5-6.2L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.2L3 16M3 21v-5h5",
     broom: "M5 21h14M7 21l1-6h8l1 6M12 3v12",
     download: "M12 4v11M7 10l5 5 5-5M5 20h14",
+    search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3",
+    compass: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM16.2 7.8l-2.1 6.3-6.3 2.1 2.1-6.3z",
+    back: "M19 12H5M12 19l-7-7 7-7",
+    external: "M15 3h6v6M10 14L21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6",
+    image: "M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15 9h.01",
+    check: "M5 12l5 5L20 7",
+    left: "M15 6l-6 6 6 6",
+    right: "M9 6l6 6-6 6",
     link: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1",
   };
   let { name, filled = false }: { name: string; filled?: boolean } = $props();

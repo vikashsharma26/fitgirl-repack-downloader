@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use fitdl_core::{AddResult, AppPaths, Config, ItemId, Manager, NewLink};
+use fitdl_scraper::catalog::{GameDetails, SearchPage, Section};
 use fitdl_scraper::Page;
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -39,6 +40,30 @@ fn get_items(state: State<AppState>) -> Value {
 #[tauri::command]
 async fn scrape(state: State<'_, AppState>, url: String) -> CmdResult<Page> {
     state.manager.scrape(url.trim()).await.map_err(err)
+}
+
+#[tauri::command]
+async fn popular(state: State<'_, AppState>) -> CmdResult<Vec<Section>> {
+    state.manager.popular().await.map_err(err)
+}
+
+#[tauri::command]
+async fn search(state: State<'_, AppState>, query: String, page: u32) -> CmdResult<SearchPage> {
+    state.manager.search(&query, page).await.map_err(err)
+}
+
+#[tauri::command]
+async fn game(state: State<'_, AppState>, slug: String) -> CmdResult<GameDetails> {
+    state.manager.game(&slug).await.map_err(err)
+}
+
+/// Open a web page in the default browser (FitGirl pages only).
+#[tauri::command]
+fn open_url(app: AppHandle, url: String) -> CmdResult<()> {
+    if !url.starts_with("https://fitgirl-repacks.site/") {
+        return Err("only FitGirl pages can be opened".into());
+    }
+    app.opener().open_url(url, None::<&str>).map_err(err)
 }
 
 #[tauri::command]
@@ -247,6 +272,10 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             get_items,
             scrape,
+            popular,
+            search,
+            game,
+            open_url,
             add_links,
             pause,
             resume,

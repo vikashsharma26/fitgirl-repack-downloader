@@ -4,11 +4,11 @@
 
 # FitDL
 
-**A fast, resumable, IDM-style downloader for FitGirl Repacks, with a browser extension.**
+**Browse, search and download FitGirl Repacks with a fast, resumable, IDM-style downloader.**
 
-Open a game page, click one button, and every `fuckingfast.co` file is queued and downloaded
-over several connections at once. Downloads survive pauses, crashes, reboots and expired links
-without ever leaving a broken file behind.
+Find a game in the built-in catalog (or with the browser extension), pick its files, and every
+`fuckingfast.co` part is downloaded over several connections at once. Downloads survive pauses,
+crashes, reboots and expired links without ever leaving a broken file behind.
 
 [![CI](https://github.com/vikashsharma26/fitgirl-repack-downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/vikashsharma26/fitgirl-repack-downloader/actions/workflows/ci.yml)
 ![Rust](https://img.shields.io/badge/Rust-2021-orange?logo=rust)
@@ -16,12 +16,18 @@ without ever leaving a broken file behind.
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-<img src="docs/screenshot-dark.png" alt="FitDL main window" width="860" />
+<img src="docs/screenshot-discover.png" alt="FitDL Discover: popular repacks" width="860" />
 
 </div>
 
 ## Features
 
+- **Discover.** The app opens on FitGirl's most popular repacks of today, this week and this
+  month, shown as a cover grid. Search the whole site, and open any game to see:
+  - its cover, version, repack and original size, languages, companies and genres
+  - its description and screenshots
+  - a file checklist: pick the parts you want and click **Download**
+- **Adult filter.** Games tagged *Adult* on the site are hidden by default. A setting shows them.
 - **Multi-connection downloads.** Each file is split into segments fetched in parallel with HTTP
   range requests. When a connection finishes early it takes over half of the biggest remaining
   segment (IDM's *dynamic segmentation*), so every connection stays busy until the very end.
@@ -69,6 +75,10 @@ flowchart LR
     E --> D[(Disk: .part + .part.state)]
 ```
 
+0. **Browse.** Discover reads the popular page's cover grid. Search and game details use the
+   site's WordPress REST API, which returns each post's full content (cover, specs, description,
+   screenshots, links) in one request. Covers are loaded through the `i0.wp.com` image CDN,
+   which is faster and resizes them.
 1. **Scrape.** The extension (or the app, when you paste a page URL) collects every link whose
    host is `fuckingfast.co`, keeping the link text and the real file name from the URL's `#fragment`.
 2. **Resolve.** Right before a file starts, its `fuckingfast.co/<id>` page is turned into a signed
@@ -91,8 +101,13 @@ flowchart LR
 
 ### Desktop app
 
-- **Add downloads.** Paste a game page, a `fuckingfast.co` link or any direct URL into the top bar.
-  Game pages open a file picker with the main parts selected and optional packs unselected.
+<img src="docs/screenshot-game.png" alt="Game details with screenshots and file list" width="760" />
+
+- **Discover.** Browse popular repacks or search, then open a game. Main parts are selected and
+  optional packs are not; click **Download N files**. Games already in your list show a
+  *In downloads* or *Downloaded* badge.
+- **Add by link.** On the Downloads screen, paste a game page (it opens the game view), a
+  `fuckingfast.co` link or any direct URL.
 - **Control downloads.** Pause, resume and retry per file, per game, or everything at once.
   Failed files show the reason.
 - **Close the window freely.** Downloads keep running in the tray. Use **Quit** in the tray menu
@@ -117,10 +132,15 @@ fitdl get <URL>...        Download game pages, fuckingfast.co links or direct UR
     -d, --dir <DIR>       download folder
     -p, --parallel <N>    files at the same time
     -c, --connections <N> connections per file
-fitdl scrape <PAGE>       List a game page's download links (--json for JSON)
+fitdl popular             Most popular repacks: today, this week, this month
+fitdl search <QUERY>      Search FitGirl Repacks (-p <page>)
+fitdl game <SLUG|URL>     A game's size, languages, description and files
+fitdl scrape <PAGE>       List a game page's download links
 fitdl serve               Run headless with the API, for the extension
 fitdl config              Show the config file
 ```
+
+Every listing command also accepts `--json`.
 
 Press `Ctrl+C` to pause. Running the same command again resumes.
 
@@ -134,6 +154,7 @@ and you can edit it there or in **Settings** in the app. For a portable install,
 | --- | --- | --- |
 | `download_dir` | `Downloads\FitDL` | Where files are saved |
 | `subfolder_per_game` | `true` | Save each game in its own folder |
+| `hide_adult` | `true` | Hide games tagged *Adult* in Discover |
 | `max_parallel_files` | `3` | Files downloading at the same time |
 | `connections_per_file` | `4` | Parallel connections per file (1–32) |
 | `speed_limit_kbps` | `0` | Global limit in KB/s, `0` = unlimited |
@@ -172,7 +193,7 @@ attach them to a draft release.
 ```text
 crates/
   engine/    Segmented, resumable HTTP download engine (site-agnostic)
-  scraper/   FitGirl page parser + fuckingfast.co link resolver
+  scraper/   FitGirl catalog (popular, search, details), link parser, fuckingfast.co resolver
   core/      Config, persistent queue, local API for the extension
   cli/       `fitdl` command-line app
 app/         Desktop app: Tauri 2 (Rust) + Svelte 5 UI

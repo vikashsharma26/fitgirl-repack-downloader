@@ -1241,7 +1241,7 @@ checksum = "aedcfb3409746eddb02b9e19ebda1c3394f759a152e48ee875a0844d1b955484"
 
 [[package]]
 name = "fitdl-app"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "fitdl-core",
@@ -1260,7 +1260,7 @@ dependencies = [
 
 [[package]]
 name = "fitdl-cli"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1275,7 +1275,7 @@ dependencies = [
 
 [[package]]
 name = "fitdl-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "axum",
@@ -1295,7 +1295,7 @@ dependencies = [
 
 [[package]]
 name = "fitdl-engine"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "bytes",
@@ -1315,7 +1315,7 @@ dependencies = [
 
 [[package]]
 name = "fitdl-scraper"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "fitdl-engine",
  "percent-encoding",
@@ -1323,6 +1323,7 @@ dependencies = [
  "reqwest 0.12.28",
  "scraper",
  "serde",
+ "serde_json",
  "thiserror 2.0.21",
  "tokio",
  "url",

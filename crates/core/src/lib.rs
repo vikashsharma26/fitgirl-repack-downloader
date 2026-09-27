@@ -2,6 +2,7 @@
 //! the persistent download queue, and the local API for the browser extension.
 
 pub mod api;
+pub mod catalog;
 pub mod config;
 pub mod manager;
 

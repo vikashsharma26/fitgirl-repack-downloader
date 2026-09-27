@@ -64,6 +64,7 @@ export interface Config {
   speed_limit_kbps: number;
   state_save_interval_s: number;
   subfolder_per_game: boolean;
+  hide_adult: boolean;
   user_agent: string;
   server_port: number;
   api_token: string;
@@ -75,8 +76,61 @@ export interface AppInfo {
   api: { port: number; running: boolean; error: string | null };
 }
 
+export interface Card {
+  title: string;
+  url: string;
+  slug: string;
+  cover: string | null;
+  adult: boolean;
+}
+
+export interface Section {
+  name: string;
+  cards: Card[];
+}
+
+export interface GameSummary {
+  id: number;
+  slug: string;
+  url: string;
+  title: string;
+  name: string;
+  version: string | null;
+  date: string | null;
+  cover: string | null;
+  repack_size: string | null;
+  original_size: string | null;
+  genres: string[];
+  companies: string | null;
+  languages: string | null;
+  adult: boolean;
+}
+
+export interface Screenshot {
+  thumb: string;
+  full: string;
+}
+
+export interface GameDetails extends GameSummary {
+  game: string;
+  description: string | null;
+  screenshots: Screenshot[];
+  links: Link[];
+}
+
+export interface SearchPage {
+  query: string;
+  results: GameSummary[];
+  page: number;
+  total: number | null;
+  total_pages: number;
+}
+
+export const popular = () => invoke<Section[]>("popular");
+export const search = (query: string, page: number) => invoke<SearchPage>("search", { query, page });
+export const game = (slug: string) => invoke<GameDetails>("game", { slug });
+export const openUrl = (url: string) => invoke<void>("open_url", { url });
 export const getItems = () => invoke<{ items: ItemView[]; totals: Totals }>("get_items");
-export const scrape = (url: string) => invoke<Page>("scrape", { url });
 export const addLinks = (links: NewLink[], game: string | null) =>
   invoke<AddResult>("add_links", { links, game });
 export const pause = (id: number) => invoke<void>("pause", { id });

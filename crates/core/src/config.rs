@@ -22,6 +22,7 @@ pub struct Config {
     pub speed_limit_kbps: u64,
     pub state_save_interval_s: u64,
     pub subfolder_per_game: bool,
+    pub hide_adult: bool,
     pub user_agent: String,
     pub server_port: u16,
     pub api_token: String,
@@ -42,6 +43,7 @@ impl Default for Config {
             speed_limit_kbps: 0,
             state_save_interval_s: 2,
             subfolder_per_game: true,
+            hide_adult: true,
             user_agent: DEFAULT_USER_AGENT.to_owned(),
             server_port: DEFAULT_PORT,
             api_token: String::new(),
@@ -117,6 +119,9 @@ download_dir = {download_dir}
 # Put each game's files in its own sub-folder (named after the game).
 subfolder_per_game = {subfolder_per_game}
 
+# Hide adult (18+) games in Discover.
+hide_adult = {hide_adult}
+
 # How many files download at the same time.
 max_parallel_files = {max_parallel_files}
 
@@ -153,6 +158,7 @@ api_token = {api_token}
 "#,
             download_dir = q(&self.download_dir.to_string_lossy()),
             subfolder_per_game = self.subfolder_per_game,
+            hide_adult = self.hide_adult,
             max_parallel_files = self.max_parallel_files,
             connections_per_file = self.connections_per_file,
             min_segment_size_mb = self.min_segment_size_mb,

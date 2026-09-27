@@ -50,6 +50,10 @@
       <input type="checkbox" bind:checked={draft.subfolder_per_game} />
       Put each game in its own folder
     </label>
+    <label class="check">
+      <input type="checkbox" bind:checked={draft.hide_adult} />
+      Hide adult (18+) games in Discover
+    </label>
   </section>
 
   <section>

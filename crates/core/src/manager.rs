@@ -5,11 +5,13 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
 use fitdl_engine::{Control, Engine, Error as EngineError, Outcome, Progress, RateLimiter};
+use fitdl_scraper::catalog::{GameDetails, SearchPage, Section};
 use fitdl_scraper::{fuckingfast, is_fuckingfast, sanitize_filename, Page};
 use serde::{Deserialize, Serialize};
 use tokio::sync::{watch, Notify};
 use tracing::{info, warn};
 
+use crate::catalog::Catalog;
 use crate::config::{AppPaths, Config};
 
 pub type ItemId = u64;
@@ -116,6 +118,7 @@ struct Inner {
     next_id: AtomicU64,
     dirty: AtomicBool,
     shutting_down: AtomicBool,
+    catalog: Catalog,
 }
 
 /// The download queue. Cheap to clone; all clones share state.
@@ -175,6 +178,7 @@ impl Manager {
                 next_id: AtomicU64::new(next_id),
                 dirty: AtomicBool::new(false),
                 shutting_down: AtomicBool::new(false),
+                catalog: Catalog::default(),
             }),
         };
         tokio::spawn(manager.clone().scheduler());
@@ -310,6 +314,37 @@ impl Manager {
             added,
             skipped,
         }
+    }
+
+    /// Popular games (Today / This week / This month).
+    pub async fn popular(&self) -> Result<Vec<Section>> {
+        let mut sections = self.inner.catalog.popular(self.inner.engine.http()).await?;
+        if self.config().hide_adult {
+            for s in &mut sections {
+                s.cards.retain(|c| !c.adult);
+            }
+        }
+        Ok(sections)
+    }
+
+    pub async fn search(&self, query: &str, page: u32) -> Result<SearchPage> {
+        let mut result = self
+            .inner
+            .catalog
+            .search(self.inner.engine.http(), query, page)
+            .await?;
+        if self.config().hide_adult {
+            result.results.retain(|r| !r.adult);
+        }
+        Ok(result)
+    }
+
+    /// Everything about one game, by slug or page URL.
+    pub async fn game(&self, slug_or_url: &str) -> Result<GameDetails> {
+        self.inner
+            .catalog
+            .game(self.inner.engine.http(), slug_or_url)
+            .await
     }
 
     /// Fetch a game page and list its download links.

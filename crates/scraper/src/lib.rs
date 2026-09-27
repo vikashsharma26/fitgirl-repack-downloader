@@ -1,6 +1,7 @@
 //! Scrapes FitGirl Repacks game pages for fuckingfast.co download links and
 //! resolves those links into direct, downloadable URLs.
 
+pub mod catalog;
 pub mod fuckingfast;
 mod names;
 
@@ -61,19 +62,25 @@ pub fn is_fuckingfast(url: &str) -> bool {
         .is_some_and(|h| h == "fuckingfast.co" || h.ends_with(".fuckingfast.co"))
 }
 
-/// Collect every `<a>` whose href points at fuckingfast.co, keeping its text.
+/// Parse a full game page: title plus every fuckingfast.co link.
 pub fn parse_page(html: &str) -> Page {
     let doc = Html::parse_document(html);
-    let anchors = Selector::parse("a[href]").unwrap();
     let heading = Selector::parse("h1.entry-title").unwrap();
-
     let title = doc
         .select(&heading)
         .next()
         .map(|h| collapse_ws(&h.text().collect::<String>()))
         .filter(|t| !t.is_empty());
-    let game = title.as_deref().map(folder_name);
+    Page {
+        game: title.as_deref().map(folder_name),
+        title,
+        links: extract_links(&doc),
+    }
+}
 
+/// Collect every `<a>` whose href points at fuckingfast.co, keeping its text.
+pub fn extract_links(doc: &Html) -> Vec<Link> {
+    let anchors = Selector::parse("a[href]").unwrap();
     let mut links: Vec<Link> = Vec::new();
     for a in doc.select(&anchors) {
         let Some(href) = a.value().attr("href").map(str::trim) else {
@@ -91,7 +98,7 @@ pub fn parse_page(html: &str) -> Page {
             filename,
         });
     }
-    Page { title, game, links }
+    links
 }
 
 /// The real file name is in the URL fragment (`#Name_--_x.part01.rar`); the
@@ -112,6 +119,11 @@ pub fn filename_for(url: &str, label: &str) -> String {
 
 /// Download and parse a game page.
 pub async fn fetch_page(client: &HttpClient, url: &str) -> Result<Page> {
+    Ok(parse_page(&fetch(client, url).await?.text().await?))
+}
+
+/// GET with the error handling every FitGirl request needs.
+pub(crate) async fn fetch(client: &HttpClient, url: &str) -> Result<reqwest::Response> {
     let resp = client.get(url).send().await?;
     if resp.status().as_u16() == 403 && resp.headers().contains_key("cf-mitigated") {
         return Err(Error::Challenge);
@@ -119,9 +131,9 @@ pub async fn fetch_page(client: &HttpClient, url: &str) -> Result<Page> {
     if !resp.status().is_success() {
         return Err(Error::Status(resp.status().as_u16()));
     }
-    Ok(parse_page(&resp.text().await?))
+    Ok(resp)
 }
 
-fn collapse_ws(s: &str) -> String {
+pub(crate) fn collapse_ws(s: &str) -> String {
     s.split_whitespace().collect::<Vec<_>>().join(" ")
 }

@@ -40,3 +40,63 @@ async fn scrape_and_resolve_live() {
     assert!(info.supports_ranges);
     assert_eq!(info.filename.as_deref(), Some(first.filename.as_str()));
 }
+
+#[tokio::test]
+#[ignore = "network"]
+async fn popular_live() {
+    let sections = fitdl_scraper::catalog::popular(&client()).await.unwrap();
+    for s in &sections {
+        println!(
+            "{}: {} cards, e.g. {:?}",
+            s.name,
+            s.cards.len(),
+            s.cards.first()
+        );
+    }
+    assert!(sections.iter().map(|s| s.cards.len()).sum::<usize>() > 40);
+    assert_eq!(sections[0].name, "Today");
+    assert!(sections
+        .iter()
+        .flat_map(|s| &s.cards)
+        .all(|c| c.cover.is_some() && !c.slug.is_empty()));
+}
+
+#[tokio::test]
+#[ignore = "network"]
+async fn search_and_details_live() {
+    let client = client();
+    let page = fitdl_scraper::catalog::search(&client, "avatar", 1)
+        .await
+        .unwrap();
+    println!("total {:?}, pages {}", page.total, page.total_pages);
+    for r in &page.results {
+        println!(
+            "- {} | {:?} | {:?} | {:?} | {:?}",
+            r.name, r.version, r.repack_size, r.genres, r.cover
+        );
+    }
+    let first = &page.results[0];
+    assert_eq!(first.name, "Avatar: Frontiers of Pandora");
+    assert!(first.cover.is_some());
+
+    let game = fitdl_scraper::catalog::game(&client, &first.slug)
+        .await
+        .unwrap();
+    println!("game folder: {}", game.game);
+    println!(
+        "companies: {:?}\nlanguages: {:?}\noriginal: {:?}",
+        game.summary.companies, game.summary.languages, game.summary.original_size
+    );
+    println!(
+        "description: {:?}",
+        game.description.as_deref().map(|d| &d[..d.len().min(300)])
+    );
+    println!(
+        "screenshots: {} e.g. {:?}",
+        game.screenshots.len(),
+        game.screenshots.first()
+    );
+    assert_eq!(game.links.len(), 46);
+    assert!(game.description.is_some());
+    assert!(!game.screenshots.is_empty());
+}
