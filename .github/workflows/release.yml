@@ -1,0 +1,60 @@
+name: Release
+
+# Push a tag like v0.1.0 to build the Windows installer, CLI and extension
+# and attach them to a draft GitHub release.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+        working-directory: app
+
+      - name: Build installer (NSIS + MSI) and create draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: app
+          tagName: ${{ github.ref_name }}
+          releaseName: FitDL ${{ github.ref_name }}
+          releaseBody: |
+            **Install:** download `FitDL_*_x64-setup.exe` below and run it.
+            **Browser extension:** unzip `fitdl-extension.zip`, open `chrome://extensions` (or `edge://extensions`), enable Developer mode, click *Load unpacked* and pick the folder.
+            **CLI:** `fitdl.exe` is a standalone command-line version.
+          releaseDraft: true
+          args: --bundles nsis,msi
+
+      - name: Build CLI
+        run: cargo build --release -p fitdl-cli
+
+      - name: Package CLI and extension
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist-release | Out-Null
+          Copy-Item target/release/fitdl.exe dist-release/fitdl.exe
+          Compress-Archive -Path extension/* -DestinationPath dist-release/fitdl-extension.zip
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          draft: true
+          files: |
+            dist-release/fitdl.exe
+            dist-release/fitdl-extension.zip

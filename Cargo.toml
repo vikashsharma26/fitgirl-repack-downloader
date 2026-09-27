@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/engine", "crates/scraper", "crates/core", "crates/cli"]
+members = ["crates/engine", "crates/scraper", "crates/core", "crates/cli", "app/src-tauri"]
 
 [workspace.package]
 version = "0.1.0"
@@ -31,3 +31,10 @@ lto = true
 codegen-units = 1
 strip = true
 panic = "abort"
+
+# Keep dev builds small and fast: full debug info only for our own crates.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
