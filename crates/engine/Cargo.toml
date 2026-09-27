@@ -1,0 +1,28 @@
+[package]
+name = "fitdl-engine"
+description = "Resumable, multi-connection segmented HTTP download engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio.workspace = true
+reqwest.workspace = true
+futures-util.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+bytes.workspace = true
+percent-encoding = "2"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_IO", "Win32_System_Ioctl"] }
+
+[dev-dependencies]
+axum.workspace = true
+sha2 = "0.10"
+rand = "0.8"
+tempfile = "3"

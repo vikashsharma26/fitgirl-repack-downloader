@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon32.png" alt="" width="24" height="24" />
+      <div>
+        <strong>FitDL</strong>
+        <span id="status" class="status">Checking app…</span>
+      </div>
+    </header>
+
+    <section id="empty" hidden>
+      <p>Open a FitGirl Repacks game page to download its files.</p>
+      <p class="muted">Tip: right-click any link and choose <b>Download with FitDL</b>.</p>
+    </section>
+
+    <section id="page" hidden>
+      <h1 id="title"></h1>
+      <div class="tools">
+        <button class="link" data-select="all">All</button>
+        <button class="link" data-select="none">None</button>
+        <button class="link" data-select="main">Main files only</button>
+      </div>
+      <ul id="list"></ul>
+      <button id="send" class="primary">Send to FitDL</button>
+      <p id="result" class="result"></p>
+    </section>
+
+    <footer>
+      <label>App port <input id="port" type="number" min="1024" max="65535" /></label>
+    </footer>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
